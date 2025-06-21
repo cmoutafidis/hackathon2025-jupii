@@ -1,187 +1,144 @@
-# 🪐 Jupiter Route Visualizer
+# 📊 Jupiter Portfolio Analyzer
 
-A comprehensive Streamlit application that visualizes routes and liquidity pools used by Jupiter for token swaps. This tool provides detailed insights into the routing algorithms and DEX aggregations that Jupiter uses to find the best swap paths.
+A comprehensive portfolio analysis tool powered by **Jupiter Exchange FREE APIs** and **Solscan**. Analyze any Solana wallet's portfolio, assess risk levels, and visualize portfolio performance using real blockchain data.
 
-## 🌟 Features
+## 🚀 Features
 
-### 🔍 Route Visualization
-- **Network Graph Visualization**: Interactive network graphs showing the token flow through different DEXs
-- **Route Comparison**: Side-by-side comparison of multiple routes with metrics
-- **Step-by-step Analysis**: Detailed breakdown of each step in a route
+- **💰 Real Wallet Analysis**: Analyze any Solana wallet address with real token balances
+- **🎯 Risk Assessment**: Get risk scores and portfolio categorization (Conservative/Balanced/High Risk)
+- **📊 Interactive Visualizations**: Beautiful charts and graphs powered by Plotly
+- **🔗 Jupiter FREE APIs**: No API key required - uses Jupiter's free APIs
+- **⚡ Real-time Data**: Live token prices and wallet data from blockchain
+- **🎨 Modern UI**: Beautiful Streamlit interface with Jupiter branding
 
-### 💧 Liquidity Pool Analysis
-- **DEX Distribution**: Visual representation of which DEXs are most frequently used
-- **Pool Efficiency Metrics**: Analysis of price impact, fees, and route scores
-- **Token Pair Heatmap**: Interactive heatmap showing token pair usage patterns
-- **Fee Analysis**: Comparison of LP fees and platform fees across different DEXs
+## 🛠️ Installation
 
-### 📊 Advanced Analytics
-- **Price Impact Analysis**: Distribution and comparison of price impacts across routes
-- **Route Complexity Analysis**: Analysis of route complexity vs. efficiency
-- **Real-time Data**: Live data from Jupiter's API
-- **Interactive Filters**: Filter data by DEX, token pairs, and other parameters
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Python 3.8 or higher
-- pip (Python package installer)
-
-### Installation
-
-1. **Clone the repository**
+1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
+   git clone <your-repo-url>
    cd jupi
    ```
 
-2. **Install dependencies**
+2. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Run the application**
+3. **Run the application**:
    ```bash
-   streamlit run jupiter_route_visualizer.py
+   python3 run_app.py
    ```
 
-4. **Open your browser**
-   Navigate to `http://localhost:8501` to access the application
+## 🔧 APIs Used
 
-## 📖 Usage Guide
+This application uses **FREE APIs** with no API key required:
 
-### 1. Token Selection
-- Use the sidebar to select input and output tokens
-- The application automatically loads all available tokens from Jupiter's API
-- Popular tokens like USDC, SOL, and others are pre-selected for convenience
+### Jupiter FREE APIs
+- **`https://token.jup.ag/all`** - Get comprehensive token metadata
+- **`https://price.jup.ag/v4/price`** - Get real-time token prices
 
-### 2. Swap Configuration
-- Set the swap amount in the smallest unit (e.g., 1000000 for 1 USDC)
-- Adjust slippage tolerance (in basis points)
-- Click "Get Quote" to fetch route information
+### Solscan API (Free Tier)
+- **`https://api.solscan.io/account/tokens`** - Get wallet token balances
 
-### 3. Analyzing Results
-- **Quote Summary**: View key metrics like output amount, price impact, and available routes
-- **Route Network**: Interactive visualization of the token flow through different DEXs
-- **Liquidity Pool Analysis**: Detailed breakdown of DEX usage and pool efficiency
-- **Route Details**: Step-by-step analysis of selected routes
-- **Comparison Charts**: Visual comparison of all available routes
+## 💰 How to Use
 
-## 🔧 API Integration
+1. **Launch the App**: Run `python3 run_app.py`
+2. **Enter Wallet Address**: Paste any Solana wallet address (44 characters)
+3. **Analyze**: Click "Analyze Wallet Portfolio with Jupiter FREE APIs"
+4. **Review Results**: View risk assessment, visualizations, and insights
 
-This application integrates with Jupiter's public APIs:
+### Example Wallet Addresses
+- **Jupiter Treasury**: `7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU`
+- **Any Solana wallet**: Enter any valid 44-character Solana address
 
-- **Quote API**: `https://quote-api.jup.ag/v6/quote`
-- **Tokens API**: `https://token.jup.ag/all`
+## 📊 Portfolio Analysis Features
 
-The application automatically handles:
-- Token list caching (1 hour)
-- Error handling and retry logic
-- Real-time quote fetching
-- Route data parsing and visualization
+### Risk Assessment
+- **Risk Score Calculation**: Based on meme token exposure, stablecoin coverage, and other assets
+- **Portfolio Categorization**: 
+  - 🟢 **Conservative** (Risk Score < 30): Low-risk with stablecoins
+  - 🟡 **Balanced** (Risk Score 30-70): Mixed stable and volatile assets
+  - 🔴 **High Risk** (Risk Score > 70): High meme token exposure
 
-## 📊 Data Visualization
+### Token Categorization
+- **Stablecoins**: USDC, USDT, DAI, FRAX, BUSD, TUSD
+- **Meme Tokens**: BONK, WIF, BOME, PEPE, DOGE, SHIB, FLOKI, etc.
+- **Governance**: JUP, UNI, AAVE, COMP, CRV
+- **Native**: SOL
+- **Other**: All other tokens
 
-### Network Graphs
-- Nodes represent tokens
-- Edges represent swaps through DEXs
-- Node size indicates connectivity
-- Edge weights show price impact
+### Visualizations
+- **Portfolio Allocation Pie Chart**: See your token distribution
+- **Risk Gauge**: Visual risk score indicator
+- **Token Values by Type**: Bar chart showing values by token category
+- **Detailed Token Table**: Complete breakdown with prices and percentages
 
-### Charts and Metrics
-- **Bar Charts**: Route comparison and DEX usage
-- **Pie Charts**: DEX distribution
-- **Scatter Plots**: Price impact vs. usage analysis
-- **Heatmaps**: Token pair usage patterns
-- **Histograms**: Price impact distribution
+## 🎯 Portfolio Types
 
-## 🛠️ Technical Details
+### 🚨 High Risk Portfolio
+- **Risk Level**: High
+- **Characteristics**:
+  - Multiple meme tokens (BONK, WIF, BOME, PEPE, etc.)
+  - High concentration in volatile assets
+  - Low stablecoin coverage
+  - High risk score (>70%)
+- **Suitable for**: Thrill-seekers and high-risk tolerance investors
 
-### Architecture
-- **Frontend**: Streamlit for interactive web interface
-- **Data Processing**: Pandas for data manipulation
-- **Visualization**: Plotly for interactive charts and graphs
-- **Network Analysis**: NetworkX for graph operations
-- **API Integration**: Requests for HTTP calls
+### 🟡 Balanced Portfolio
+- **Risk Level**: Moderate
+- **Characteristics**:
+  - Mix of established and speculative tokens
+  - Balanced approach to crypto investing
+  - Moderate risk score (30-70%)
+- **Suitable for**: Balanced investors seeking some excitement
 
-### Key Components
-1. **Main Application** (`jupiter_route_visualizer.py`): Core Streamlit app
-2. **Liquidity Pool Analyzer** (`liquidity_pool_analyzer.py`): Specialized pool analysis module
-3. **Requirements** (`requirements.txt`): Python dependencies
+### ✅ Conservative Portfolio
+- **Risk Level**: Low
+- **Characteristics**:
+  - Focus on stablecoins and established tokens
+  - Conservative approach to crypto investing
+  - Low risk score (<30%)
+- **Suitable for**: Long-term, conservative investors
 
-### Performance Features
-- **Caching**: Token list cached for 1 hour
-- **Lazy Loading**: Data loaded only when needed
-- **Efficient Processing**: Optimized data structures for large datasets
-- **Responsive Design**: Works on desktop and mobile devices
+## 🔗 Jupiter Integration
 
-## 🎯 Use Cases
+This app is built on Jupiter's ecosystem:
 
-### For Traders
-- Compare different swap routes before executing trades
-- Understand price impact and slippage
-- Identify the most efficient DEXs for specific token pairs
+- **Jupiter Exchange**: The most reliable Solana DEX aggregator
+- **Unified Wallet Kit**: For wallet integration (future feature)
+- **Jupiter FREE APIs**: No API key required for basic functionality
+- **Solscan**: Free wallet data access
 
-### For Developers
-- Analyze Jupiter's routing algorithms
-- Understand DEX aggregation patterns
-- Research liquidity pool efficiency
+## 📱 Screenshots
 
-### For Researchers
-- Study DeFi routing optimization
-- Analyze DEX usage patterns
-- Research token pair correlations
+*Screenshots will be added here*
 
-## 🔍 Example Analysis
+## 🛡️ Data Sources
 
-### Route Optimization
-1. Select USDC as input and SOL as output
-2. Set amount to 1000000 (1 USDC)
-3. Compare multiple routes:
-   - Direct route through Raydium
-   - Multi-hop route through Orca → Raydium
-   - Complex route through multiple DEXs
+- **Primary**: Jupiter FREE APIs + Solscan API
+- **Fallback**: Pre-configured prices for common tokens
+- **Real-time**: Live market data and wallet balances
 
-### DEX Analysis
-- Identify which DEXs offer the best rates for specific token pairs
-- Analyze fee structures across different platforms
-- Understand liquidity distribution
+## ⚠️ Disclaimer
 
-## 🚨 Limitations
-
-- **API Rate Limits**: Jupiter API has rate limits that may affect performance during high usage
-- **Network Dependencies**: Requires stable internet connection
-- **Data Freshness**: Quote data is real-time but may become stale quickly
-- **Token Support**: Limited to tokens supported by Jupiter
+This tool is for educational and informational purposes only. It is not financial advice. Always do your own research before making investment decisions.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit pull requests or open issues for:
-
-- Bug fixes
-- New features
-- Performance improvements
-- Documentation updates
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## 🔗 Links
 
-- **Jupiter Team**: For providing the excellent API and aggregation service
-- **Streamlit**: For the amazing web app framework
-- **Plotly**: For the interactive visualization library
-- **Solana Community**: For the vibrant ecosystem
-
-## 📞 Support
-
-If you encounter any issues or have questions:
-
-1. Check the [Issues](https://github.com/your-repo/issues) page
-2. Create a new issue with detailed information
-3. Include error messages and steps to reproduce
+- [Jupiter Exchange](https://jup.ag)
+- [Jupiter Unified Wallet Kit](https://unified.jup.ag)
+- [Jupiter API Documentation](https://station.jup.ag/docs/apis/swap-api)
+- [Solscan API](https://public-api.solscan.io/docs/)
+- [Streamlit](https://streamlit.io)
 
 ---
 
-**Built with ❤️ for the Solana DeFi community**
+**Powered by Jupiter Exchange** 🚀 

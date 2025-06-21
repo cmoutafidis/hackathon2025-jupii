@@ -1,55 +1,75 @@
 #!/usr/bin/env python3
 """
-Jupiter Route Visualizer Launcher
+Jupiter Portfolio Analyzer Launcher
+===================================
+Launches the Jupiter Portfolio Analyzer using Jupiter FREE APIs only.
+No API key required - uses lite-api.jup.ag endpoints.
 """
 
 import subprocess
 import sys
 import os
+import time
 
 def check_dependencies():
-    try:
-        import streamlit
-        import requests
-        import pandas
-        import plotly
-        import networkx
-        print("✅ All dependencies are installed!")
-        return True
-    except ImportError as e:
-        print(f"❌ Missing dependency: {e}")
-        print("Please install dependencies using: pip install -r requirements.txt")
-        return False
+    """Check if required dependencies are installed"""
+    required_packages = [
+        'streamlit',
+        'pandas', 
+        'plotly',
+        'requests'
+    ]
+    
+    missing_packages = []
+    
+    for package in required_packages:
+        try:
+            __import__(package)
+        except ImportError:
+            missing_packages.append(package)
+    
+    if missing_packages:
+        print("❌ Missing required packages:")
+        for package in missing_packages:
+            print(f"   - {package}")
+        print("\n📦 Installing missing packages...")
+        
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install"] + missing_packages)
+            print("✅ All packages installed successfully!")
+        except subprocess.CalledProcessError:
+            print("❌ Failed to install packages. Please install manually:")
+            print(f"   pip install {' '.join(missing_packages)}")
+            return False
+    
+    return True
 
 def main():
-    print("🪐 Jupiter Route Visualizer")
+    print("📊 Jupiter Portfolio Analyzer")
     print("=" * 40)
     
-    if not os.path.exists("jupiter_route_visualizer.py"):
-        print("❌ Error: jupiter_route_visualizer.py not found!")
-        print("Please run this script from the project directory.")
-        sys.exit(1)
-    
+    # Check dependencies
     if not check_dependencies():
-        sys.exit(1)
+        return
     
-    print("🚀 Starting Jupiter Route Visualizer...")
+    print("✅ All dependencies are installed!")
+    print("🚀 Starting Jupiter Portfolio Analyzer...")
     print("📱 The app will open in your browser at http://localhost:8501")
     print("⏹️  Press Ctrl+C to stop the application")
     print("-" * 40)
     
+    # Launch the Jupiter Portfolio Analyzer
     try:
         subprocess.run([
             sys.executable, "-m", "streamlit", "run", 
-            "jupiter_route_visualizer.py",
+            "jupiter_portfolio_analyzer.py",
             "--server.port", "8501",
-            "--server.address", "localhost"
+            "--server.headless", "true"
         ])
     except KeyboardInterrupt:
-        print("\n👋 Application stopped by user")
+        print("\n👋 Jupiter Portfolio Analyzer stopped.")
     except Exception as e:
-        print(f"❌ Error launching application: {e}")
-        sys.exit(1)
+        print(f"❌ Error launching app: {e}")
 
 if __name__ == "__main__":
     main() 
