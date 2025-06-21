@@ -77,8 +77,24 @@ def test_quote_api(tokens):
         
         print(f"✅ Successfully fetched quote")
         print(f"  Input: 1 {usdc_token['symbol']}")
-        print(f"  Output: {float(quote_data.get('outAmount', 0)) / 10**9:.6f} {sol_token['symbol']}")
-        print(f"  Price Impact: {quote_data.get('priceImpactPct', 0):.4f}%")
+        
+        # Safely convert outAmount to float
+        out_amount = quote_data.get('outAmount', '0')
+        try:
+            out_amount_float = float(out_amount) / 10**9
+        except (ValueError, TypeError):
+            out_amount_float = 0.0
+            
+        print(f"  Output: {out_amount_float:.6f} {sol_token['symbol']}")
+        
+        # Safely convert price impact to float
+        price_impact = quote_data.get('priceImpactPct', '0')
+        try:
+            price_impact_float = float(price_impact)
+        except (ValueError, TypeError):
+            price_impact_float = 0.0
+            
+        print(f"  Price Impact: {price_impact_float:.4f}%")
         print(f"  Available Routes: {len(quote_data.get('routes', []))}")
         
         # Show route details
@@ -89,7 +105,15 @@ def test_quote_api(tokens):
                 print(f"  Route {i+1}:")
                 print(f"    Score: {route.get('score', 0):.2f}")
                 print(f"    Steps: {len(route.get('routePlan', []))}")
-                print(f"    Price Impact: {route.get('priceImpactPct', 0):.4f}%")
+                
+                # Safely convert route price impact
+                route_impact = route.get('priceImpactPct', '0')
+                try:
+                    route_impact_float = float(route_impact)
+                except (ValueError, TypeError):
+                    route_impact_float = 0.0
+                    
+                print(f"    Price Impact: {route_impact_float:.4f}%")
         
         return quote_data
         

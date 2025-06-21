@@ -19,10 +19,6 @@ font = "sans serif"
 
 [client]
 showErrorDetails = true
-caching = true
-displayEnabled = true
 
 [runner]
-magicEnabled = true
-installTracer = false
-fixMatplotlib = true 
+magicEnabled = true 

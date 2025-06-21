@@ -4,6 +4,15 @@ import plotly.express as px
 import plotly.graph_objects as go
 from collections import defaultdict
 
+def safe_float(value, default=0.0):
+    """Safely convert a value to float, handling strings and None values"""
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 def analyze_liquidity_pools(routes_data, token_list):
     """Analyze liquidity pools used across all routes"""
     
@@ -40,11 +49,11 @@ def analyze_liquidity_pools(routes_data, token_list):
                     'input_token': input_token.get('symbol', 'Unknown'),
                     'output_token': output_token.get('symbol', 'Unknown'),
                     'token_pair': token_pair,
-                    'price_impact': step.get('priceImpactPct', 0),
-                    'route_score': route.get('score', 0),
+                    'price_impact': safe_float(step.get('priceImpactPct', 0)),
+                    'route_score': safe_float(route.get('score', 0)),
                     'amm_key': amm_info.get('ammKey', 'Unknown'),
-                    'lp_fee': amm_info.get('lpFee', 0),
-                    'platform_fee': amm_info.get('platformFee', 0)
+                    'lp_fee': safe_float(amm_info.get('lpFee', 0)),
+                    'platform_fee': safe_float(amm_info.get('platformFee', 0))
                 }
                 
                 pool_data.append(pool_info)

@@ -46,6 +46,15 @@ st.markdown("""
 JUPITER_QUOTE_API = "https://quote-api.jup.ag/v6/quote"
 JUPITER_TOKENS_API = "https://token.jup.ag/all"
 
+def safe_float(value, default=0.0):
+    """Safely convert a value to float, handling strings and None values"""
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def get_token_list():
     """Fetch the list of all available tokens from Jupiter"""
@@ -57,6 +66,28 @@ def get_token_list():
     except Exception as e:
         st.error(f"Error fetching token list: {e}")
         return []
+
+def validate_token_pair(input_mint, output_mint, token_list):
+    """Validate that both tokens are supported by Jupiter"""
+    input_token = next((t for t in token_list if t.get('address') == input_mint), None)
+    output_token = next((t for t in token_list if t.get('address') == output_mint), None)
+    
+    if not input_token:
+        st.error(f"❌ Input token not found in Jupiter's supported tokens list")
+        return False
+    
+    if not output_token:
+        st.error(f"❌ Output token not found in Jupiter's supported tokens list")
+        return False
+    
+    if input_mint == output_mint:
+        st.error("❌ Input and output tokens cannot be the same")
+        return False
+    
+    st.success(f"✅ Input: {input_token.get('symbol', 'Unknown')} ({input_token.get('name', 'Unknown')})")
+    st.success(f"✅ Output: {output_token.get('symbol', 'Unknown')} ({output_token.get('name', 'Unknown')})")
+    
+    return True
 
 def get_quote(input_mint, output_mint, amount, slippage_bps=50):
     """Get quote from Jupiter API"""
@@ -70,11 +101,35 @@ def get_quote(input_mint, output_mint, amount, slippage_bps=50):
             "asLegacyTransaction": "false"
         }
         
+        # Add debugging information
+        st.info(f"🔍 Requesting quote for tokens...")
+        st.info(f"Input Mint: {input_mint[:8]}...{input_mint[-8:]}")
+        st.info(f"Output Mint: {output_mint[:8]}...{output_mint[-8:]}")
+        st.info(f"Amount: {amount}")
+        
         response = requests.get(JUPITER_QUOTE_API, params=params)
+        
+        if response.status_code != 200:
+            st.error(f"❌ API Error: {response.status_code}")
+            st.error(f"Response: {response.text}")
+            
+            # Provide helpful error messages
+            if response.status_code == 400:
+                st.error("💡 This usually means:")
+                st.error("- One or both tokens are not supported by Jupiter")
+                st.error("- The token addresses are invalid")
+                st.error("- The amount is too small or too large")
+                st.error("- There's no liquidity for this token pair")
+            
+            return None
+            
         response.raise_for_status()
         return response.json()
+    except requests.exceptions.RequestException as e:
+        st.error(f"❌ Network Error: {e}")
+        return None
     except Exception as e:
-        st.error(f"Error fetching quote: {e}")
+        st.error(f"❌ Unexpected Error: {e}")
         return None
 
 def create_route_network_graph(routes_data, token_list):
@@ -193,16 +248,16 @@ def display_route_details(route, token_list, route_index):
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Output Amount", f"{float(route.get('outAmount', 0)) / 10**6:.6f}")
+        st.metric("Output Amount", f"{safe_float(route.get('outAmount', 0)) / 10**6:.6f}")
     
     with col2:
-        st.metric("Price Impact", f"{route.get('priceImpactPct', 0):.4f}%")
+        st.metric("Price Impact", f"{safe_float(route.get('priceImpactPct', 0)):.4f}%")
     
     with col3:
-        st.metric("Market Impact", f"{route.get('marketImpact', 0):.4f}%")
+        st.metric("Market Impact", f"{safe_float(route.get('marketImpact', 0)):.4f}%")
     
     with col4:
-        st.metric("Route Score", f"{route.get('score', 0):.2f}")
+        st.metric("Route Score", f"{safe_float(route.get('score', 0)):.2f}")
     
     # Display route steps
     st.write("**Route Steps:**")
@@ -235,6 +290,22 @@ def main():
     # Token selection
     st.sidebar.subheader("Token Selection")
     
+    # Popular token presets
+    st.sidebar.write("**Popular Token Pairs:**")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("USDC → SOL", key="preset1"):
+            st.session_state.input_token = "USDC (USD Coin)"
+            st.session_state.output_token = "SOL (Solana)"
+            st.rerun()
+    
+    with col2:
+        if st.button("SOL → USDC", key="preset2"):
+            st.session_state.input_token = "SOL (Solana)"
+            st.session_state.output_token = "USDC (USD Coin)"
+            st.rerun()
+    
     # Fetch token list
     with st.spinner("Loading tokens..."):
         token_list = get_token_list()
@@ -247,16 +318,24 @@ def main():
     token_options = {f"{token['symbol']} ({token['name']})": token['address'] 
                     for token in token_list if token.get('symbol') and token.get('name')}
     
+    # Use session state for token selection
+    if 'input_token' not in st.session_state:
+        st.session_state.input_token = "USDC (USD Coin)" if "USDC (USD Coin)" in token_options else list(token_options.keys())[0]
+    if 'output_token' not in st.session_state:
+        st.session_state.output_token = "SOL (Solana)" if "SOL (Solana)" in token_options else list(token_options.keys())[1] if len(token_options) > 1 else list(token_options.keys())[0]
+    
     input_token = st.sidebar.selectbox(
         "Input Token",
         options=list(token_options.keys()),
-        index=list(token_options.keys()).index("USDC (USD Coin)") if "USDC (USD Coin)" in token_options else 0
+        index=list(token_options.keys()).index(st.session_state.input_token) if st.session_state.input_token in token_options else 0,
+        key="input_select"
     )
     
     output_token = st.sidebar.selectbox(
         "Output Token",
         options=list(token_options.keys()),
-        index=list(token_options.keys()).index("SOL (Solana)") if "SOL (Solana)" in token_options else 1
+        index=list(token_options.keys()).index(st.session_state.output_token) if st.session_state.output_token in token_options else 1 if len(token_options) > 1 else 0,
+        key="output_select"
     )
     
     # Amount input
@@ -279,10 +358,18 @@ def main():
     
     # Get quote button
     if st.sidebar.button("Get Quote", type="primary"):
+        input_mint = token_options[input_token]
+        output_mint = token_options[output_token]
+        
+        # Validate tokens first
+        if not validate_token_pair(input_mint, output_mint, token_list):
+            st.error("❌ Token validation failed. Please select different tokens.")
+            return
+        
         with st.spinner("Fetching quote..."):
             quote_data = get_quote(
-                token_options[input_token],
-                token_options[output_token],
+                input_mint,
+                output_mint,
                 amount,
                 slippage_bps
             )
@@ -290,9 +377,9 @@ def main():
         if quote_data:
             st.session_state.quote_data = quote_data
             st.session_state.token_list = token_list
-            st.success("Quote fetched successfully!")
+            st.success("✅ Quote fetched successfully!")
         else:
-            st.error("Failed to fetch quote. Please check your parameters.")
+            st.error("❌ Failed to fetch quote. Please check your parameters.")
     
     # Display results
     if hasattr(st.session_state, 'quote_data') and st.session_state.quote_data:
@@ -311,7 +398,7 @@ def main():
             )
         
         with col2:
-            out_amount = float(quote_data.get('outAmount', 0))
+            out_amount = safe_float(quote_data.get('outAmount', 0))
             st.metric(
                 "Output Amount",
                 f"{out_amount / 10**9:.6f}",
@@ -319,7 +406,7 @@ def main():
             )
         
         with col3:
-            price_impact = quote_data.get('priceImpactPct', 0)
+            price_impact = safe_float(quote_data.get('priceImpactPct', 0))
             st.metric(
                 "Price Impact",
                 f"{price_impact:.4f}%",
@@ -371,10 +458,10 @@ def main():
             for i, route in enumerate(routes):
                 comparison_data.append({
                     'Route': f"Route {i + 1}",
-                    'Output Amount': float(route.get('outAmount', 0)) / 10**9,
-                    'Price Impact (%)': route.get('priceImpactPct', 0),
-                    'Market Impact (%)': route.get('marketImpact', 0),
-                    'Score': route.get('score', 0),
+                    'Output Amount': safe_float(route.get('outAmount', 0)) / 10**9,
+                    'Price Impact (%)': safe_float(route.get('priceImpactPct', 0)),
+                    'Market Impact (%)': safe_float(route.get('marketImpact', 0)),
+                    'Score': safe_float(route.get('score', 0)),
                     'Number of Steps': len(route.get('routePlan', []))
                 })
             
