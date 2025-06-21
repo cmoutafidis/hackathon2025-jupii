@@ -67,25 +67,26 @@ def get_token_list():
         st.error(f"Error fetching token list: {e}")
         return []
 
-def validate_token_pair(input_mint, output_mint, token_list):
+def validate_token_pair(input_mint, output_mint, token_options):
     """Validate that both tokens are supported by Jupiter"""
-    input_token = next((t for t in token_list if t.get('address') == input_mint), None)
-    output_token = next((t for t in token_list if t.get('address') == output_mint), None)
+    # Find tokens in our verified list
+    input_token_name = next((name for name, addr in token_options.items() if addr == input_mint), None)
+    output_token_name = next((name for name, addr in token_options.items() if addr == output_mint), None)
     
-    if not input_token:
-        st.error(f"❌ Input token not found in Jupiter's supported tokens list")
+    if not input_token_name:
+        st.error(f"❌ Input token not found in verified tokens list")
         return False
     
-    if not output_token:
-        st.error(f"❌ Output token not found in Jupiter's supported tokens list")
+    if not output_token_name:
+        st.error(f"❌ Output token not found in verified tokens list")
         return False
     
     if input_mint == output_mint:
         st.error("❌ Input and output tokens cannot be the same")
         return False
     
-    st.success(f"✅ Input: {input_token.get('symbol', 'Unknown')} ({input_token.get('name', 'Unknown')})")
-    st.success(f"✅ Output: {output_token.get('symbol', 'Unknown')} ({output_token.get('name', 'Unknown')})")
+    st.success(f"✅ Input: {input_token_name}")
+    st.success(f"✅ Output: {output_token_name}")
     
     return True
 
@@ -314,9 +315,48 @@ def main():
         st.error("Failed to load token list. Please try again.")
         return
     
-    # Create token selection dropdowns
-    token_options = {f"{token['symbol']} ({token['name']})": token['address'] 
-                    for token in token_list if token.get('symbol') and token.get('name')}
+    # Create token selection dropdowns with verified tokens
+    # Use only verified, tradable tokens
+    verified_tokens = {
+        # USDC - Official USD Coin
+        "USDC (USD Coin)": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        # SOL - Native Solana
+        "SOL (Solana)": "So11111111111111111111111111111111111111112",
+        # USDT - Tether USD
+        "USDT (Tether USD)": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        # RAY - Raydium
+        "RAY (Raydium)": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        # SRM - Serum
+        "SRM (Serum)": "SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt",
+        # ORCA - Orca
+        "ORCA (Orca)": "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE",
+        # MNGO - Mango
+        "MNGO (Mango)": "MangoCzJ36AjZyKwVj3VnYU4GTonjfVEnJmvvWaxLac",
+        # BONK - Bonk
+        "BONK (Bonk)": "7GaP5Wbm6vtdRHabnktF1UjJBMvVJQftgTS9Y8Zrs7qF",
+        # JUP - Jupiter
+        "JUP (Jupiter)": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        # PYTH - Pyth Network
+        "PYTH (Pyth Network)": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
+        # WIF - dogwifhat
+        "WIF (dogwifhat)": "EKpQGSJtjMFqKZ1KQanSqYXRcF8fBopzLHYxdM65Qjm",
+    }
+    
+    # Add some additional tokens from the API that are verified
+    additional_tokens = {}
+    for token in token_list:
+        symbol = token.get('symbol', '')
+        name = token.get('name', '')
+        address = token.get('address', '')
+        
+        # Only add tokens that are not already in verified_tokens
+        if symbol and name and address and f"{symbol} ({name})" not in verified_tokens:
+            # Add some popular tokens that might be missing
+            if symbol in ['BOME', 'POPCAT', 'DOGE', 'SHIB', 'MATIC', 'ETH', 'BTC']:
+                additional_tokens[f"{symbol} ({name})"] = address
+    
+    # Combine verified and additional tokens
+    token_options = {**verified_tokens, **additional_tokens}
     
     # Use session state for token selection
     if 'input_token' not in st.session_state:
@@ -362,7 +402,7 @@ def main():
         output_mint = token_options[output_token]
         
         # Validate tokens first
-        if not validate_token_pair(input_mint, output_mint, token_list):
+        if not validate_token_pair(input_mint, output_mint, token_options):
             st.error("❌ Token validation failed. Please select different tokens.")
             return
         
